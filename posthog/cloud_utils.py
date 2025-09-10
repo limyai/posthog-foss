@@ -6,7 +6,7 @@ from django.db.utils import ProgrammingError
 from posthog.exceptions_capture import capture_exception
 
 if TYPE_CHECKING:
-    from ee.models.license import License
+    from posthog.ee_stubs import License
 
 is_cloud_cached: Optional[bool] = None
 is_instance_licensed_cached: Optional[bool] = None
@@ -29,7 +29,10 @@ def get_cached_instance_license() -> Optional["License"]:
     global is_instance_licensed_cached
 
     try:
-        from ee.models.license import License
+        if settings.EE_AVAILABLE:
+            from ee.models.license import License
+        else:
+            from posthog.ee_stubs import License
     except ProgrammingError:
         # TRICKY - The license table may not exist if a migration is running
         pass

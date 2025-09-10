@@ -17,18 +17,10 @@ from posthog.scopes import APIScopeObject, API_SCOPE_OBJECTS
 
 
 if TYPE_CHECKING:
-    from ee.models import AccessControl
     from posthog.models.file_system.file_system import FileSystem
 
-    _AccessControl = AccessControl
-else:
-    _AccessControl = object
-
-
-try:
-    from ee.models.rbac.access_control import AccessControl
-except ImportError:
-    pass
+# EE access control removed
+_AccessControl = object
 
 AccessControlLevelNone = Literal["none"]
 AccessControlLevelMember = Literal[AccessControlLevelNone, "member", "admin"]

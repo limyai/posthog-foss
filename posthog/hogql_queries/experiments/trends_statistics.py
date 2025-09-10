@@ -6,11 +6,10 @@ from rest_framework.exceptions import ValidationError
 import scipy.stats as stats
 from posthog.exceptions_capture import capture_exception
 
-from ee.clickhouse.queries.experiments import (
-    FF_DISTRIBUTION_THRESHOLD,
-    MIN_PROBABILITY_FOR_SIGNIFICANCE,
-    P_VALUE_SIGNIFICANCE_LEVEL,
-)
+# Constants from EE experiments module
+FF_DISTRIBUTION_THRESHOLD = 100
+MIN_PROBABILITY_FOR_SIGNIFICANCE = 0.9
+P_VALUE_SIGNIFICANCE_LEVEL = 0.05
 
 from posthog.schema import ExperimentSignificanceCode, ExperimentVariantTrendsBaseStats
 

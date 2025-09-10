@@ -23,11 +23,8 @@ def sync_members_to_billing(organization_id: str) -> None:
 @shared_task(ignore_result=True, rate_limit="5/s")
 def sync_from_billing(organization_id: str) -> None:
     from posthog.models import Organization
-    from ee.billing.billing_manager import BillingManager
     from posthog.cloud_utils import get_cached_instance_license
-
-    license = get_cached_instance_license()
-    billing_manager = BillingManager(license, None)
-
-    organization = Organization.objects.get(id=organization_id)
-    billing_manager.get_billing(organization, {})
+    # EE billing manager removed - no-op function
+    
+    # Billing functionality removed
+    pass

@@ -13,8 +13,12 @@ from django.test import TestCase
 from django.utils.timezone import now
 from freezegun import freeze_time
 
-from ee.api.test.base import LicensedTestMixin
-from ee.models.license import License
+from posthog.ee_stubs import LicensedTestMixin
+from posthog.models.instance_setting import get_instance_setting
+
+class License:
+    """Stub License model for tests"""
+    pass
 from posthog.clickhouse.client import sync_execute
 from posthog.clickhouse.query_tagging import tag_queries
 from posthog.cloud_utils import TEST_clear_instance_license_cache

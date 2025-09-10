@@ -216,19 +216,23 @@ class RemoteConfig(UUIDModel):
 
         # MARK: Quota limiting
         if settings.EE_AVAILABLE:
-            from ee.billing.quota_limiting import (
-                QuotaLimitingCaches,
-                QuotaResource,
-                list_limited_team_attributes,
-            )
+            try:
+                from ee.billing.quota_limiting import (
+                    QuotaLimitingCaches,
+                    QuotaResource,
+                    list_limited_team_attributes,
+                )
 
-            limited_tokens_recordings = list_limited_team_attributes(
-                QuotaResource.RECORDINGS, QuotaLimitingCaches.QUOTA_LIMITER_CACHE_KEY
-            )
+                limited_tokens_recordings = list_limited_team_attributes(
+                    QuotaResource.RECORDINGS, QuotaLimitingCaches.QUOTA_LIMITER_CACHE_KEY
+                )
 
-            if team.api_token in limited_tokens_recordings:
-                config["quotaLimited"] = ["recordings"]
-                config["sessionRecording"] = False
+                if team.api_token in limited_tokens_recordings:
+                    config["quotaLimited"] = ["recordings"]
+                    config["sessionRecording"] = False
+            except ImportError:
+                # Quota limiting not available, continue without it
+                pass
 
         config["heatmaps"] = True if team.heatmaps_opt_in else False
 

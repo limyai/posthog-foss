@@ -28,7 +28,7 @@ def create_event_definitions_sql(
     if order_expressions is None:
         order_expressions = []
     if is_enterprise:
-        from ee.models import EnterpriseEventDefinition
+        from posthog.models.event_definition_stub import EnterpriseEventDefinition
 
         ee_model = EnterpriseEventDefinition
     else:
@@ -147,7 +147,7 @@ class EventDefinitionViewSet(
 
         event_definition_object_manager: Manager
         if is_enterprise:
-            from ee.models.event_definition import EnterpriseEventDefinition
+            from posthog.models.event_definition_stub import EnterpriseEventDefinition
 
             event_definition_object_manager = EnterpriseEventDefinition.objects
 
@@ -196,7 +196,7 @@ class EventDefinitionViewSet(
         if EE_AVAILABLE and self.request.user.organization.is_feature_available(  # type: ignore
             AvailableFeature.INGESTION_TAXONOMY
         ):
-            from ee.models.event_definition import EnterpriseEventDefinition
+            from posthog.models.event_definition_stub import EnterpriseEventDefinition
 
             enterprise_event = EnterpriseEventDefinition.objects.filter(id=id, team__project_id=self.project_id).first()
             if enterprise_event:
@@ -217,7 +217,7 @@ class EventDefinitionViewSet(
         if EE_AVAILABLE and self.request.user.organization.is_feature_available(  # type: ignore
             AvailableFeature.INGESTION_TAXONOMY
         ):
-            from ee.api.ee_event_definition import EnterpriseEventDefinitionSerializer
+            from posthog.models.event_definition_stub import EnterpriseEventDefinitionSerializer
 
             serializer_class = EnterpriseEventDefinitionSerializer  # type: ignore
         return serializer_class

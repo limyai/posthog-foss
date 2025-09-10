@@ -114,14 +114,8 @@ async def query_usage_reports(
 
         instance_metadata = await async_get_instance_metadata(period)
 
+        # EE SQS producer removed
         producer = None
-        try:
-            if settings.EE_AVAILABLE:
-                from ee.sqs.SQSProducer import get_sqs_producer
-
-                producer = get_sqs_producer("usage_reports")
-        except Exception:
-            pass
 
         pha_client = get_ph_client(sync_mode=True)
 

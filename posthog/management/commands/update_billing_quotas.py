@@ -2,7 +2,10 @@ import pprint
 
 from django.core.management.base import BaseCommand
 
-from ee.billing.quota_limiting import update_all_orgs_billing_quotas
+
+def update_all_orgs_billing_quotas(dry_run=False):
+    """Stub function - quota limiting is not available in FOSS version"""
+    return {"events": [], "recordings": []}, {"events": [], "recordings": []}
 
 
 class Command(BaseCommand):

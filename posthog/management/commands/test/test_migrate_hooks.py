@@ -1,4 +1,4 @@
-from ee.models.hook import Hook
+from posthog.ee_stubs import Hook
 from common.hogvm.python.operation import HOGQL_BYTECODE_VERSION
 from posthog.cdp.templates.zapier.template_zapier import template as template_zapier
 from posthog.management.commands.migrate_hooks import migrate_hooks

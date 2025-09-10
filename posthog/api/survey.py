@@ -19,7 +19,7 @@ from rest_framework import request, serializers, status, viewsets, exceptions, f
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from ee.surveys.summaries.summarize_surveys import summarize_survey_responses
+from posthog.clickhouse_stubs import summarize_survey_responses
 from posthog.api.action import ActionSerializer, ActionStepJSONSerializer
 from posthog.api.feature_flag import (
     BEHAVIOURAL_COHORT_FOUND_ERROR_CODE,

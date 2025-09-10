@@ -991,12 +991,7 @@ def get_instance_available_sso_providers() -> dict[str, bool]:
     bypass_license: bool = is_cloud() or settings.DEMO
     license = None
     if not bypass_license:
-        try:
-            from ee.models.license import License
-        except ImportError:
-            pass
-        else:
-            license = License.objects.first_valid()
+        license = None
 
     if getattr(settings, "SOCIAL_AUTH_GOOGLE_OAUTH2_KEY", None) and getattr(
         settings,

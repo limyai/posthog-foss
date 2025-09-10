@@ -7,7 +7,7 @@ from posthog.models.utils import UUIDModel
 from posthog.models.team import Team
 from posthog.models.user import User
 from posthog.models.user_group import UserGroup
-from ee.models.rbac.role import Role
+# EE Role model removed
 from posthog.models.error_tracking.sql import INSERT_ERROR_TRACKING_ISSUE_FINGERPRINT_OVERRIDES
 from posthog.storage import object_storage
 
@@ -66,7 +66,7 @@ class ErrorTrackingIssueAssignment(UUIDModel):
     issue = models.OneToOneField(ErrorTrackingIssue, on_delete=models.CASCADE, related_name="assignment")
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
     user_group = models.ForeignKey(UserGroup, null=True, on_delete=models.CASCADE)
-    role = models.ForeignKey(Role, null=True, on_delete=models.CASCADE)
+    # role = models.ForeignKey(Role, null=True, on_delete=models.CASCADE)  # EE Role removed
     created_at = models.DateTimeField(auto_now_add=True)
 
 
@@ -158,7 +158,7 @@ class ErrorTrackingAssignmentRule(UUIDModel):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
     user_group = models.ForeignKey(UserGroup, null=True, on_delete=models.CASCADE)
-    role = models.ForeignKey(Role, null=True, on_delete=models.CASCADE)
+    # role = models.ForeignKey(Role, null=True, on_delete=models.CASCADE)  # EE Role removed
     order_key = models.IntegerField(null=False, blank=False)
     bytecode = models.JSONField(null=False, blank=False)  # The bytecode of the rule
     filters = models.JSONField(null=False, blank=False)  # The json object describing the filter rule
@@ -204,7 +204,7 @@ class ErrorTrackingGroupingRule(UUIDModel):
     # in so far as we permit all of these to be null
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
     user_group = models.ForeignKey(UserGroup, null=True, on_delete=models.CASCADE)
-    role = models.ForeignKey(Role, null=True, on_delete=models.CASCADE)
+    # role = models.ForeignKey(Role, null=True, on_delete=models.CASCADE)  # EE Role removed
 
     # Users will probably find it convenient to be able to add a short description to grouping rules
     description = models.TextField(null=True)

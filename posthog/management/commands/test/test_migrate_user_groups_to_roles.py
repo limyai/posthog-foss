@@ -1,5 +1,5 @@
 from posthog.models.user_group import UserGroup, UserGroupMembership
-from ee.models.rbac.role import Role, RoleMembership
+from posthog.rbac.access_control_stub import Role, RoleMembership
 from django.core.management import call_command
 from posthog.test.base import BaseTest
 from posthog.models.error_tracking import (

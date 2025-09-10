@@ -198,18 +198,9 @@ class Organization(UUIDModel):
         Obtains details on the billing plan for the organization.
         Returns a tuple with (billing_plan_key, billing_realm)
         """
-        try:
-            from ee.models.license import License
-        except ImportError:
-            License = None  # type: ignore
-        # Demo gets all features
+        # EE License model removed - always return None for FOSS
         if settings.DEMO or "generate_demo_data" in sys.argv[1:2]:
-            return (License.ENTERPRISE_PLAN, "demo")
-        # Otherwise, try to find a valid license on this instance
-        if License is not None:
-            license = License.objects.first_valid()
-            if license:
-                return (license.plan, "ee")
+            return ("enterprise", "demo")  # Demo gets enterprise features
         return (None, None)
 
     def update_available_product_features(self) -> list[ProductFeature]:
@@ -218,31 +209,9 @@ class Organization(UUIDModel):
             # Since billing V2 we just use the field which is updated when the billing service is called
             return self.available_product_features or []
 
-        try:
-            from ee.models.license import License
-        except ImportError:
-            self.available_product_features = []
-            return []
-
+        # EE License model removed - no features available in FOSS
         self.available_product_features = []
-
-        # Self hosted legacy license so we just sync the license features
-        # Demo gets all features
-        if settings.DEMO or "generate_demo_data" in sys.argv[1:2]:
-            features = License.PLANS.get(License.ENTERPRISE_PLAN, [])
-            self.available_product_features = [
-                {"key": feature, "name": " ".join(feature.split(" ")).capitalize()} for feature in features
-            ]
-        else:
-            # Otherwise, try to find a valid license on this instance
-            license = License.objects.first_valid()
-            if license:
-                features = License.PLANS.get(License.ENTERPRISE_PLAN, [])
-                self.available_product_features = [
-                    {"key": feature, "name": " ".join(feature.split(" ")).capitalize()} for feature in features
-                ]
-
-        return self.available_product_features
+        return []
 
     def get_available_feature(self, feature: Union[AvailableFeature, str]) -> Optional[dict]:
         vals: list[dict[str, Any]] = self.available_product_features or []

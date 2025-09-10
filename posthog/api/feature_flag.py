@@ -73,7 +73,7 @@ from posthog.queries.base import (
     determine_parsed_date_for_property_matching,
 )
 from posthog.rate_limit import BurstRateThrottle
-from ee.models.rbac.organization_resource_access import OrganizationResourceAccess
+# EE OrganizationResourceAccess removed
 from django.dispatch import receiver
 from posthog.models.signals import model_activity_signal
 
@@ -183,26 +183,8 @@ class FeatureFlagSerializer(
         ]
 
     def get_can_edit(self, feature_flag: FeatureFlag) -> bool:
-        # TODO: make sure this isn't n+1
-        return (
-            # Old access control
-            can_user_edit_feature_flag(self.context["request"], feature_flag)
-            or
-            # New access control
-            (
-                self.get_user_access_level(feature_flag) == "editor"
-                and
-                # This is an added check for mid-migration to the new access control. We want to check
-                # if the user has permissions from either system but in the case they are still using
-                # the old system, since the new system defaults to editor we need to check what that
-                # organization is defaulting to for access (view or edit)
-                not OrganizationResourceAccess.objects.filter(
-                    organization=self.context["request"].user.organization,
-                    resource="feature flags",
-                    access_level=OrganizationResourceAccess.AccessLevel.CAN_ONLY_VIEW,
-                ).exists()
-            )
-        )
+        # EE access control removed - use simple permission check
+        return can_user_edit_feature_flag(self.context["request"], feature_flag)
 
     # Simple flags are ones that only have rollout_percentage
     # That means server side libraries are able to gate these flags without calling to the server
@@ -947,21 +929,25 @@ class FeatureFlagViewSet(
 
         try:
             # Check if team is quota limited for feature flags
-            if settings.DECIDE_FEATURE_FLAG_QUOTA_CHECK:
-                from ee.billing.quota_limiting import QuotaLimitingCaches, QuotaResource, list_limited_team_attributes
+            if settings.DECIDE_FEATURE_FLAG_QUOTA_CHECK and settings.EE_AVAILABLE:
+                try:
+                    from ee.billing.quota_limiting import QuotaLimitingCaches, QuotaResource, list_limited_team_attributes
 
-                limited_tokens_flags = list_limited_team_attributes(
-                    QuotaResource.FEATURE_FLAG_REQUESTS, QuotaLimitingCaches.QUOTA_LIMITER_CACHE_KEY
-                )
-                if self.team.api_token in limited_tokens_flags:
-                    return Response(
-                        {
-                            "type": "quota_limited",
-                            "detail": "You have exceeded your feature flag request quota",
-                            "code": "payment_required",
-                        },
-                        status=status.HTTP_402_PAYMENT_REQUIRED,
+                    limited_tokens_flags = list_limited_team_attributes(
+                        QuotaResource.FEATURE_FLAG_REQUESTS, QuotaLimitingCaches.QUOTA_LIMITER_CACHE_KEY
                     )
+                    if self.team.api_token in limited_tokens_flags:
+                        return Response(
+                            {
+                                "type": "quota_limited",
+                                "detail": "You have exceeded your feature flag request quota",
+                                "code": "payment_required",
+                            },
+                            status=status.HTTP_402_PAYMENT_REQUIRED,
+                        )
+                except ImportError:
+                    # Quota limiting not available, continue without checking
+                    pass
 
             logger.info(
                 "Starting local evaluation",

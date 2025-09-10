@@ -3,13 +3,20 @@ from posthog.models.organization import OrganizationMembership
 
 
 def can_user_edit_feature_flag(request, feature_flag):
+    from posthog.settings import EE_AVAILABLE
+    
     # self hosted check for enterprise models that may not exist
-    try:
-        from ee.models.feature_flag_role_access import FeatureFlagRoleAccess
-        from ee.models.rbac.organization_resource_access import OrganizationResourceAccess
-    except:
-        return True
+    if EE_AVAILABLE:
+        try:
+            from ee.models.feature_flag_role_access import FeatureFlagRoleAccess
+            from ee.models.rbac.organization_resource_access import OrganizationResourceAccess
+        except ImportError:
+            return True
     else:
+        from posthog.ee_stubs import FeatureFlagRoleAccess
+        from posthog.rbac.access_control_stub import OrganizationResourceAccess
+    
+    if EE_AVAILABLE:
         if not request.user.organization.is_feature_available(AvailableFeature.ROLE_BASED_ACCESS):
             return True
         if hasattr(feature_flag, "created_by") and feature_flag.created_by and feature_flag.created_by == request.user:
@@ -48,3 +55,6 @@ def can_user_edit_feature_flag(request, feature_flag):
             return can_edit
         else:
             return final_level == OrganizationResourceAccess.AccessLevel.CAN_ALWAYS_EDIT
+    else:
+        # FOSS version - always allow editing
+        return True

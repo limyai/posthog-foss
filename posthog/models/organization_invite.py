@@ -6,8 +6,7 @@ from django.db import models
 from django.utils import timezone
 from rest_framework import exceptions
 
-from ee.models.explicit_team_membership import ExplicitTeamMembership
-from ee.models.rbac.access_control import AccessControl
+# EE models removed
 from posthog.constants import INVITE_DAYS_VALIDITY
 from posthog.email import is_email_available
 from posthog.models.organization import OrganizationMembership

@@ -6,7 +6,7 @@ import posthoganalytics
 from django.db.models import QuerySet
 from rest_framework import exceptions, mixins, request, response, serializers, status, viewsets, permissions
 
-from ee.models.explicit_team_membership import ExplicitTeamMembership
+from posthog.ee_stubs import ExplicitTeamMembership
 from posthog.api.routing import TeamAndOrgViewSetMixin
 from posthog.api.shared import UserBasicSerializer
 from posthog.api.utils import action
@@ -197,7 +197,14 @@ class OrganizationInviteSerializer(serializers.ModelSerializer):
                 continue
 
             # New access control checks
-            from ee.models.rbac.access_control import AccessControl
+            from posthog.settings import EE_AVAILABLE
+            if EE_AVAILABLE:
+                try:
+                    from ee.models.rbac.access_control import AccessControl
+                except ImportError:
+                    from posthog.rbac.access_control_stub import AccessControl
+            else:
+                from posthog.rbac.access_control_stub import AccessControl
 
             # Check if the team has an access control row that applies to the entire resource
             team_access_controls = AccessControl.objects.filter(

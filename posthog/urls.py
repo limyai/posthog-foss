@@ -65,15 +65,6 @@ from posthog.api.slack import slack_interactivity_callback
 logger = structlog.get_logger(__name__)
 
 ee_urlpatterns: list[Any] = []
-try:
-    from ee.urls import extend_api_router
-    from ee.urls import urlpatterns as ee_urlpatterns
-except ImportError:
-    if settings.DEBUG:
-        logger.warn(f"Could not import ee.urls", exc_info=True)
-    pass
-else:
-    extend_api_router()
 
 
 @requires_csrf_token

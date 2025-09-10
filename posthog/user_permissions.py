@@ -104,25 +104,11 @@ class UserPermissions:
 
     @cached_property
     def explicit_team_memberships(self) -> dict[int, Any]:
-        try:
-            from ee.models import ExplicitTeamMembership
-        except ImportError:
-            return {}
-
-        memberships = ExplicitTeamMembership.objects.filter(
-            parent_membership_id__in=[membership.pk for membership in self.organization_memberships.values()]
-        ).only("parent_membership_id", "level", "team_id")
-        return {membership.team_id: membership.level for membership in memberships}
+        return {}
 
     @cached_property
     def dashboard_privileges(self) -> dict[int, Dashboard.PrivilegeLevel]:
-        try:
-            from ee.models import DashboardPrivilege
-
-            rows = DashboardPrivilege.objects.filter(user=self.user).values_list("dashboard_id", "level")
-            return {dashboard_id: cast(Dashboard.PrivilegeLevel, level) for dashboard_id, level in rows}
-        except ImportError:
-            return {}
+        return {}
 
     def set_preloaded_dashboard_tiles(self, tiles: list[DashboardTile]):
         """
@@ -183,61 +169,8 @@ class UserTeamPermissions:
             else:
                 return organization_membership.level
 
-        # New access control system
-        from ee.models.rbac.access_control import AccessControl
-
-        # Check if the team is private
-        team_is_private = AccessControl.objects.filter(
-            team_id=self.team.id,
-            resource="team",
-            resource_id=str(self.team.id),
-            organization_member=None,
-            role=None,
-            access_level="none",
-        ).exists()
-
-        # If team is not private, all organization members have access
-        if not team_is_private:
-            return cast("OrganizationMembership.Level", organization_membership.level)
-
-        # For private teams, check if the user has specific access
-
-        # Organization admins and owners always have access
-        if organization_membership.level >= OrganizationMembership.Level.ADMIN:
-            return cast("OrganizationMembership.Level", organization_membership.level)
-
-        # Check for direct member access through AccessControl entries
-        user_has_access = AccessControl.objects.filter(
-            team_id=self.team.id,
-            resource="team",
-            resource_id=str(self.team.id),
-            organization_member=organization_membership.id,
-            access_level__in=["member", "admin"],
-        ).exists()
-
-        if user_has_access:
-            return cast("OrganizationMembership.Level", organization_membership.level)
-
-        # Check for role-based access
-        from ee.models.rbac.role import RoleMembership
-
-        user_roles = RoleMembership.objects.filter(organization_member=organization_membership.id).values_list(
-            "role", flat=True
-        )
-
-        role_has_access = AccessControl.objects.filter(
-            team_id=self.team.id,
-            resource="team",
-            resource_id=str(self.team.id),
-            role__in=user_roles,
-            access_level__in=["member", "admin"],
-        ).exists()
-
-        if role_has_access:
-            return cast("OrganizationMembership.Level", organization_membership.level)
-
-        # No access found
-        return None
+        # Access control system removed - use basic organization membership
+        return cast("OrganizationMembership.Level", organization_membership.level)
 
 
 class UserDashboardPermissions:

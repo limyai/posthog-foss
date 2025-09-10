@@ -927,7 +927,7 @@ class QueryRunner(ABC, Generic[Q, R, CR]):
         if not settings.EE_AVAILABLE or not settings.API_QUERIES_ENABLED:
             return None
 
-        from ee.billing.quota_limiting import list_limited_team_attributes, QuotaLimitingCaches, QuotaResource
+        from posthog.billing_stub import list_limited_team_attributes, QuotaLimitingCaches, QuotaResource
         from posthog.constants import AvailableFeature
 
         if self.team.api_token in list_limited_team_attributes(

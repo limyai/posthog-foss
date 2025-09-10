@@ -207,26 +207,9 @@ class User(AbstractUser, UUIDClassicModel):
         if org_available_product_features and len(org_available_product_features) > 0:
             org_available_product_feature_keys = [feature["key"] for feature in org_available_product_features]
             if AvailableFeature.ADVANCED_PERMISSIONS in org_available_product_feature_keys:
-                try:
-                    from ee.models import ExplicitTeamMembership
-                except ImportError:
-                    pass
-                else:
-                    available_private_project_ids = ExplicitTeamMembership.objects.filter(
-                        Q(parent_membership__user=self)
-                    ).values_list("team_id", flat=True)
-                    organizations_where_user_is_admin = OrganizationMembership.objects.filter(
-                        user=self, level__gte=OrganizationMembership.Level.ADMIN
-                    ).values_list("organization_id", flat=True)
-                    # If project access control IS applicable, make sure
-                    # - project doesn't have access control OR
-                    # - the user has explicit access OR
-                    # - the user is Admin or owner
-                    teams = teams.filter(
-                        Q(access_control=False)
-                        | Q(pk__in=available_private_project_ids)
-                        | Q(organization__pk__in=organizations_where_user_is_admin)
-                    )
+                # EE explicit team membership removed
+                
+                pass
 
         return teams.order_by("access_control", "id")
 
@@ -292,10 +275,8 @@ class User(AbstractUser, UUIDClassicModel):
         self.update_billing_organization_users(organization)
 
     def update_billing_organization_users(self, organization: Organization) -> None:
-        from ee.billing.billing_manager import BillingManager  # avoid circular import
-
-        if is_cloud() and get_cached_instance_license() is not None:
-            BillingManager(get_cached_instance_license()).update_billing_organization_users(organization)
+        # EE billing manager removed
+        pass
 
     def get_analytics_metadata(self):
         team_member_count_all: int = (

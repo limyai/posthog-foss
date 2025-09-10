@@ -36,9 +36,13 @@ def get_user_blast_radius(
     cleaned_filter = replace_proxy_properties(team, feature_flag_condition)
 
     if group_type_index is not None:
-        try:
-            from ee.clickhouse.queries.groups_join_query import GroupsJoinQuery
-        except Exception:
+        from posthog.settings import EE_AVAILABLE
+        if EE_AVAILABLE:
+            try:
+                from ee.clickhouse.queries.groups_join_query import GroupsJoinQuery
+            except ImportError:
+                return 0, 0
+        else:
             return 0, 0
 
         if len(properties) > 0:

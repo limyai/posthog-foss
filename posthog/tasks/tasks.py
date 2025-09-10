@@ -734,26 +734,14 @@ def recompute_materialized_columns_enabled() -> bool:
 
 @shared_task(ignore_result=True)
 def clickhouse_materialize_columns() -> None:
-    if recompute_materialized_columns_enabled():
-        try:
-            from ee.clickhouse.materialized_columns.analyze import (
-                materialize_properties_task,
-            )
-        except ImportError:
-            pass
-        else:
-            materialize_properties_task()
+    # EE materialized columns removed
+    pass
 
 
 @shared_task(ignore_result=True)
 def clickhouse_mark_all_materialized() -> None:
-    if recompute_materialized_columns_enabled():
-        try:
-            from ee.tasks.materialized_columns import mark_all_materialized
-        except ImportError:
-            pass
-        else:
-            mark_all_materialized()
+    # EE materialized columns removed
+    pass
 
 
 @shared_task(ignore_result=True, queue=CeleryQueue.USAGE_REPORTS.value)
@@ -765,65 +753,38 @@ def send_org_usage_reports() -> None:
 
 @shared_task(ignore_result=True)
 def schedule_all_subscriptions() -> None:
-    try:
-        from ee.tasks.subscriptions import (
-            schedule_all_subscriptions as _schedule_all_subscriptions,
-        )
-    except ImportError:
-        pass
-    else:
-        _schedule_all_subscriptions()
+    # EE subscriptions removed
+    pass
 
 
 @shared_task(ignore_result=True, retries=3)
 def clickhouse_send_license_usage() -> None:
-    try:
-        if not is_cloud():
-            from ee.tasks.send_license_usage import send_license_usage
-
-            send_license_usage()
-    except ImportError:
-        pass
+    # EE license usage removed
+    pass
 
 
 @shared_task(ignore_result=True)
 def check_flags_to_rollback() -> None:
-    try:
-        from ee.tasks.auto_rollback_feature_flag import check_flags_to_rollback
-
-        check_flags_to_rollback()
-    except ImportError:
-        pass
+    # EE auto rollback removed
+    pass
 
 
 @shared_task(ignore_result=True)
 def ee_persist_single_recording(id: str, team_id: int) -> None:
-    try:
-        from ee.session_recordings.persistence_tasks import persist_single_recording
-
-        persist_single_recording(id, team_id)
-    except ImportError:
-        pass
+    # EE session recording persistence removed
+    pass
 
 
 @shared_task(ignore_result=True)
 def ee_persist_finished_recordings() -> None:
-    try:
-        from ee.session_recordings.persistence_tasks import persist_finished_recordings
-    except ImportError:
-        pass
-    else:
-        persist_finished_recordings()
+    # EE session recording persistence removed
+    pass
 
 
 @shared_task(ignore_result=True)
 def ee_persist_finished_recordings_v2() -> None:
-    try:
-        from ee.session_recordings.persistence_tasks import persist_finished_recordings_v2
-    except ImportError:
-        pass
-    else:
-        persist_finished_recordings_v2()
+    # EE session recording persistence removed
+    pass
 
 
 @shared_task(
@@ -831,12 +792,5 @@ def ee_persist_finished_recordings_v2() -> None:
     queue=CeleryQueue.SESSION_REPLAY_GENERAL.value,
 )
 def count_items_in_playlists() -> None:
-    try:
-        from ee.session_recordings.playlist_counters.recordings_that_match_playlist_filters import (
-            enqueue_recordings_that_match_playlist_filters,
-        )
-    except ImportError as ie:
-        posthoganalytics.capture_exception(ie, properties={"posthog_feature": "session_replay_playlist_counters"})
-        logger.exception("Failed to import task to count items in playlists", error=ie)
-    else:
-        enqueue_recordings_that_match_playlist_filters()
+    # EE playlist counters removed
+    pass

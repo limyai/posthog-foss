@@ -7,8 +7,7 @@ from django.core.management.base import BaseCommand
 from posthog.rbac.migrations.rbac_team_migration import rbac_team_access_control_migration
 from posthog.rbac.migrations.rbac_feature_flag_migration import rbac_feature_flag_role_access_migration
 from posthog.models.organization import Organization
-from ee.models.rbac.organization_resource_access import OrganizationResourceAccess
-from ee.models.rbac.role import Role
+from posthog.rbac.access_control_stub import OrganizationResourceAccess, Role
 from datetime import datetime
 
 logger = structlog.get_logger(__name__)

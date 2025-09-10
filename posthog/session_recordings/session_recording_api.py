@@ -34,7 +34,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.utils.encoders import JSONEncoder
-from ee.session_recordings.session_summary.stream import stream_recording_summary
+# EE session summary removed
 import posthog.session_recordings.queries.session_recording_list_from_query
 import posthog.session_recordings.queries.sub_queries.events_subquery
 from posthog.api.person import MinimalPersonSerializer
@@ -934,10 +934,8 @@ class SessionRecordingViewSet(TeamAndOrgViewSetMixin, viewsets.GenericViewSet, U
         # If you want to test sessions locally - override `session_id` and `self.team.pk`
         # with session/team ids of your choice and set `local_reads_prod` to True
         session_id = recording.session_id
-        return StreamingHttpResponse(
-            stream_recording_summary(session_id=session_id, user_pk=user.pk, team=self.team),
-            content_type=ServerSentEventRenderer.media_type,
-        )
+        # EE session summary removed
+        return Response({"error": "Session summary not available"}, status=501)
 
         # TODO: Calculate timings for stream, and track summarization events (follow-up)
         # timings_header = summary.pop("timings_header", None)

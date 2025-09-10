@@ -330,9 +330,7 @@ def send_report_to_billing_service(org_id: str, report: dict[str, Any]) -> None:
     if not settings.EE_AVAILABLE:
         return
 
-    from ee.billing.billing_manager import BillingManager, build_billing_token
-    from ee.billing.billing_types import BillingStatus
-    from ee.settings import BILLING_SERVICE_URL
+    # EE billing imports removed
 
     try:
         license = get_cached_instance_license()
@@ -1535,13 +1533,7 @@ def send_all_org_usage_reports(
     instance_metadata = get_instance_metadata(period)
 
     producer = None
-    try:
-        if settings.EE_AVAILABLE:
-            from ee.sqs.SQSProducer import get_sqs_producer
-
-            producer = get_sqs_producer("usage_reports")
-    except Exception:
-        pass
+    # EE SQS producer removed
 
     pha_client = get_ph_client(sync_mode=True)
 

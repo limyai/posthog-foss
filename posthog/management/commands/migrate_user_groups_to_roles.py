@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from posthog.models.user_group import UserGroup
-from ee.models.rbac.role import Role, RoleMembership
+from posthog.rbac.access_control_stub import Role, RoleMembership
 from posthog.models.team import Team
 from posthog.models.error_tracking import (
     ErrorTrackingIssueAssignment,

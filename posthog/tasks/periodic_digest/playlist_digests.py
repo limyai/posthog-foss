@@ -48,16 +48,8 @@ class CountedPlaylist:
 
 
 def _prepare_counted_playlists(qs: QuerySet) -> list[CountedPlaylist]:
+    # EE playlist counters removed
     playlist_count_redis_prefix: str | None = None
-    try:
-        from ee.session_recordings.playlist_counters.recordings_that_match_playlist_filters import (
-            PLAYLIST_COUNT_REDIS_PREFIX,
-        )
-
-        # use this key as the probe to check if EE features (and so playlist counting) are available
-        playlist_count_redis_prefix = PLAYLIST_COUNT_REDIS_PREFIX
-    except ImportError:
-        pass
 
     results = []
 

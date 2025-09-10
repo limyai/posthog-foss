@@ -547,33 +547,10 @@ class PropertyDefinitionViewSet(
             ]
         )
 
-        use_enterprise_taxonomy = (
-            isinstance(self.request.user, User)
-            and self.request.user.organization
-            and self.request.user.organization.is_feature_available(AvailableFeature.INGESTION_TAXONOMY)
-        )
+        use_enterprise_taxonomy = False
         order_by_verified = False
-        if use_enterprise_taxonomy:
-            try:
-                # noinspection PyUnresolvedReferences
-                from ee.models.property_definition import EnterprisePropertyDefinition
-
-                # Prevent fetching deprecated `tags` field. Tags are separately fetched in TaggedItemSerializerMixin
-                property_definition_fields = ", ".join(
-                    [
-                        f'{f.cached_col.alias}."{f.column}"'
-                        for f in EnterprisePropertyDefinition._meta.get_fields()
-                        if hasattr(f, "column")
-                        and f.column not in ["deprecated_tags", "tags"]
-                        and hasattr(f, "cached_col")
-                    ]
-                )
-
-                queryset = EnterprisePropertyDefinition.objects
-
-                order_by_verified = True
-            except ImportError:
-                use_enterprise_taxonomy = False
+        property_definition_fields = None
+        queryset = None
 
         assert isinstance(self.paginator, NotCountingLimitOffsetPaginator)
         limit = self.paginator.get_limit(self.request)
@@ -635,19 +612,7 @@ class PropertyDefinitionViewSet(
 
     def get_serializer_class(self) -> type[serializers.ModelSerializer]:
         serializer_class: type[serializers.ModelSerializer] = self.serializer_class
-        if (
-            isinstance(self.request.user, User)
-            and self.request.user.organization
-            and self.request.user.organization.is_feature_available(AvailableFeature.INGESTION_TAXONOMY)
-        ):
-            try:
-                from ee.api.ee_property_definition import (
-                    EnterprisePropertyDefinitionSerializer,
-                )
-            except ImportError:
-                pass
-            else:
-                serializer_class = EnterprisePropertyDefinitionSerializer
+        # EE enterprise property definition serializer removed
         return serializer_class
 
     def safely_get_object(self, queryset):
@@ -659,32 +624,7 @@ class PropertyDefinitionViewSet(
             id=id,
             effective_project_id=self.project_id,
         )
-        if (
-            isinstance(self.request.user, User)
-            and self.request.user.organization
-            and self.request.user.organization.is_feature_available(AvailableFeature.INGESTION_TAXONOMY)
-        ):
-            try:
-                # noinspection PyUnresolvedReferences
-                from ee.models.property_definition import EnterprisePropertyDefinition
-            except ImportError:
-                pass
-            else:
-                enterprise_property = (
-                    EnterprisePropertyDefinition.objects.alias(
-                        effective_project_id=Coalesce("project_id", "team_id", output_field=models.BigIntegerField())
-                    )
-                    .filter(id=id, effective_project_id=self.project_id)  # type: ignore
-                    .first()
-                )
-                if enterprise_property:
-                    return enterprise_property
-                new_enterprise_property = EnterprisePropertyDefinition(
-                    propertydefinition_ptr_id=non_enterprise_property.id, description=""
-                )
-                new_enterprise_property.__dict__.update(non_enterprise_property.__dict__)
-                new_enterprise_property.save()
-                return new_enterprise_property
+        # EE enterprise property definitions removed
         return non_enterprise_property
 
     @extend_schema(parameters=[PropertyDefinitionQuerySerializer])

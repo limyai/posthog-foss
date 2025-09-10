@@ -1,8 +1,6 @@
-from ee.models.rbac.access_control import AccessControl
-from ee.models.feature_flag_role_access import FeatureFlagRoleAccess
-from ee.models.rbac.organization_resource_access import OrganizationResourceAccess
+from posthog.rbac.access_control_stub import AccessControl, OrganizationResourceAccess, Role
+from posthog.ee_stubs import FeatureFlagRoleAccess
 from posthog.models.team import Team
-from ee.models.rbac.role import Role
 from django.db import transaction
 import structlog
 from posthog.exceptions_capture import capture_exception

@@ -22,7 +22,7 @@ from token_bucket import Limiter, MemoryStorage
 from typing import Any, Optional, Literal
 import posthoganalytics
 
-from ee.billing.quota_limiting import QuotaLimitingCaches
+# EE quota limiting removed
 from posthog.api.utils import get_data, get_token, safe_clickhouse_string
 from posthog.api.csp import process_csp_report
 from posthog.cache_utils import cache_for
@@ -378,7 +378,7 @@ def drop_events_over_quota(token: str, events: list[Any]) -> EventsOverQuotaResu
     if not settings.EE_AVAILABLE:
         return EventsOverQuotaResult(events, False, False, False)
 
-    from ee.billing.quota_limiting import QuotaResource, list_limited_team_attributes
+    # EE quota limiting removed - function returns early for FOSS
 
     results = []
     limited_tokens_events = list_limited_team_attributes(

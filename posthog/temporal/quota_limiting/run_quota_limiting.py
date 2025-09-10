@@ -30,19 +30,8 @@ async def run_quota_limiting_all_orgs(
     _inputs: RunQuotaLimitingAllOrgsInputs,
 ) -> None:
     async with Heartbeater():
-        try:
-            from ee.billing.quota_limiting import update_all_orgs_billing_quotas
-
-            @sync_to_async
-            def async_update_all_orgs_billing_quotas():
-                update_all_orgs_billing_quotas()
-
-            await async_update_all_orgs_billing_quotas()
-        except ImportError:
-            pass
-        except Exception as e:
-            capture_exception(e)
-            raise
+        # EE billing quota limiting removed
+        pass
 
 
 @workflow.defn(name="run-quota-limiting")

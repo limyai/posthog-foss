@@ -1,6 +1,6 @@
 from django.db import transaction
-from ee.models.rbac.access_control import AccessControl
-from ee.models.explicit_team_membership import ExplicitTeamMembership
+from posthog.rbac.access_control_stub import AccessControl
+from posthog.ee_stubs import ExplicitTeamMembership
 import structlog
 from posthog.models.organization import Organization, OrganizationMembership
 from posthog.exceptions_capture import capture_exception

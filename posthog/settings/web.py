@@ -107,12 +107,7 @@ if DEBUG:
     INSTALLED_APPS.append("django_linear_migrations")
 
 # Append Enterprise Edition as an app if available
-try:
-    from ee.apps import EnterpriseConfig  # noqa: F401
-except ImportError:
-    pass
-else:
-    INSTALLED_APPS.append("ee.apps.EnterpriseConfig")
+# EE app removed
 
 # Use django-extensions if it exists
 try:
