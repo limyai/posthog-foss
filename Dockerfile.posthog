@@ -1,0 +1,72 @@
+#
+# PostHog build stage - fetches PostHog (Django app) dependencies & builds Django collectstatic
+#
+FROM python:3.11.9-slim-bookworm
+WORKDIR /code
+SHELL ["/bin/bash", "-e", "-o", "pipefail", "-c"]
+
+# Compile and install Python dependencies.
+# We install those dependencies on a custom folder that we will
+# then copy to the last image.
+COPY pyproject.toml uv.lock ./
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    "build-essential" \
+    "git" \
+    "libpq-dev" \
+    "libxmlsec1" \
+    "libxmlsec1-dev" \
+    "libffi-dev" \
+    "zlib1g-dev" \
+    "pkg-config" \
+    && \
+    rm -rf /var/lib/apt/lists/* && \
+    pip install uv~=0.7.0 --no-cache-dir && \
+    UV_PROJECT_ENVIRONMENT=/python-runtime uv sync --frozen --no-dev --no-cache --compile-bytecode --no-binary-package lxml --no-binary-package xmlsec
+
+ENV PATH=/python-runtime/bin:$PATH \
+    PYTHONPATH=/python-runtime
+
+# Add in Django deps and generate Django's static files.
+COPY manage.py manage.py
+COPY common/esbuilder common/esbuilder
+COPY common/hogvm common/hogvm/
+COPY posthog posthog/
+COPY products/ products/
+COPY ee ee/
+
+# Note: This expects frontend dist to be available - in a multi-stage build you'd copy from frontend-build stage
+# COPY --from=frontend-build /code/frontend/dist /code/frontend/dist
+
+RUN SKIP_SERVICE_VERSION_REQUIREMENTS=1 STATIC_COLLECTION=1 DATABASE_URL='postgres:///' REDIS_URL='redis:///' python manage.py collectstatic --noinput
+
+# Fetch the GeoLite2-City database for IP geolocation
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    "ca-certificates" \
+    "curl" \
+    "brotli" \
+    && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir -p share && \
+    ( curl -s -L "https://mmdbcdn.posthog.net/" --http1.1 | brotli --decompress --output=./share/GeoLite2-City.mmdb ) && \
+    chmod -R 755 ./share/GeoLite2-City.mmdb
+
+# Copy the server startup script
+COPY bin/docker-server bin/docker-server
+COPY bin/migrate-check bin/migrate-check
+COPY bin/migrate bin/migrate
+COPY gunicorn.config.py ./
+
+# Make scripts executable
+RUN chmod +x bin/docker-server bin/migrate-check bin/migrate
+
+# Disable Prometheus metrics to avoid multiprocess collisions
+ENV DISABLE_PROMETHEUS_METRICS=1
+
+# Expose the application port
+EXPOSE 8000
+
+# Run the server
+CMD ["./bin/migrate","./bin/docker-server"]
+# CMD ["./bin/docker-server"]

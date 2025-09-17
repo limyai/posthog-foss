@@ -1,0 +1,239 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    labels:
+        app.kubernetes.io/name: posthog-foss
+        app.kubernetes.io/instance: posthog-foss
+    name: posthog-foss
+    namespace: posthog
+spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+        matchLabels:
+            app.kubernetes.io/instance: posthog-foss
+            app.kubernetes.io/name: posthog-foss
+    strategy:
+        rollingUpdate:
+            maxSurge: 25%
+            maxUnavailable: 25%
+        type: RollingUpdate
+    template:
+        metadata:
+            annotations:
+                kubectl.kubernetes.io/restartedAt: '2025-09-14T19:11:40+03:00'
+            creationTimestamp: null
+            labels:
+                app.kubernetes.io/instance: posthog-foss
+                app.kubernetes.io/name: posthog-foss
+        spec:
+            containers:
+                - command:
+                      - /bin/bash
+                      - -c
+                      - |
+                          sleep infinity
+                  env:
+                      - name: API_QUERIES_PER_TEAM
+                        value: '["1": 100]'
+                      - name: CLICKHOUSE_API_PASSWORD
+                        value: apipass
+                      - name: CLICKHOUSE_API_USER
+                        value: api
+                      - name: CLICKHOUSE_APP_PASSWORD
+                        value: apppass
+                      - name: CLICKHOUSE_APP_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                key: CLICKHOUSE_APP_PASSWORD
+                                name: posthog-secrets
+                      - name: CLICKHOUSE_APP_USER
+                        value: app
+                      - name: CLICKHOUSE_APP_USER
+                        valueFrom:
+                            secretKeyRef:
+                                key: CLICKHOUSE_APP_USER
+                                name: posthog-secrets
+                      - name: CLICKHOUSE_DATABASE
+                        value: posthog
+                      - name: CLICKHOUSE_DATABASE
+                        valueFrom:
+                            secretKeyRef:
+                                key: CLICKHOUSE_DATABASE
+                                name: posthog-secrets
+                      - name: CLICKHOUSE_HOST
+                        value: clickhouse-headless.clickhouse-stg.svc.cluster.local
+                      - name: CLICKHOUSE_HOST_0
+                        value: clickhouse-0.clickhouse-headless.clickhouse-stg.svc.cluster.local
+                      - name: CLICKHOUSE_PASSWORD
+                        value: apppass
+                      - name: CLICKHOUSE_SECURE
+                        value: 'false'
+                      - name: CLICKHOUSE_USER
+                        value: app
+                      - name: CLICKHOUSE_VERIFY
+                        value: 'false'
+                      - name: CYCLOTRON_DATABASE_URL
+                        value: postgres://postgres:mPKkLzKaPCIC4jBGovdf1IcIBaFudjcB@posthog-prod.c4zo42mumffs.us-east-1.rds.amazonaws.com:5432/posthog
+                      - name: DATABASE_URL
+                        value: postgres://postgres:mPKkLzKaPCIC4jBGovdf1IcIBaFudjcB@posthog-prod.c4zo42mumffs.us-east-1.rds.amazonaws.com:5432/posthog
+                      - name: DEPLOYMENT
+                        value: prod
+                      - name: DISABLE_SECURE_SSL_REDIRECT
+                        value: 'true'
+                      - name: ENCRYPTION_SALT_KEYS
+                        value: c766da338d3754df8d2a9e94489dd6c9
+                      - name: ENCRYPTION_SALT_KEYS
+                        valueFrom:
+                            secretKeyRef:
+                                key: ENCRYPTION_SALT_KEYS
+                                name: posthog-secrets
+                      - name: IS_BEHIND_PROXY
+                        value: 'true'
+                      - name: KAFKA_HOSTS
+                        value: override by secret
+                      - name: KAFKA_HOSTS
+                        valueFrom:
+                            secretKeyRef:
+                                key: KAFKA_HOSTS
+                                name: posthog-secrets
+                      - name: LIVESTREAM_HOST
+                        value: https://posthog-dev.limy.ai:8666
+                      - name: OBJECT_STORAGE_ENABLED
+                        value: 'true'
+                      - name: OBJECT_STORAGE_ENDPOINT
+                        value: https://s3.amazonaws.com
+                      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+                      - name: OTEL_SDK_DISABLED
+                        value: 'true'
+                      - name: OTEL_SERVICE_NAME
+                        value: posthog
+                      - name: PERSONS_DATABASE_URL
+                        value: postgres://postgres:mPKkLzKaPCIC4jBGovdf1IcIBaFudjcB@posthog-prod.c4zo42mumffs.us-east-1.rds.amazonaws.com:5432/posthog
+                      - name: PGHOST
+                        value: posthog-prod.c4zo42mumffs.us-east-1.rds.amazonaws.com
+                      - name: PGPASSWORD
+                        value: mPKkLzKaPCIC4jBGovdf1IcIBaFudjcB
+                      - name: PGUSER
+                        value: postgres
+                      - name: POSTHOG_SKIP_MIGRATION_CHECKS
+                        value: '1'
+                      - name: REDIS_URL
+                        value: redis://redis-posthog-no-tls-prod.ccagwt.ng.0001.use1.cache.amazonaws.com:6379/
+                      - name: RUN_ASYNC_MIGRATIONS
+                        value: 'true'
+                      - name: SECRET_KEY
+                        value: 9fb61b7ff846ee715fdfcd1c462909b2ff5496eee38e3d7e63b9754c
+                      - name: SECRET_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                key: SECRET_KEY
+                                name: posthog-secrets
+                      - name: SESSION_RECORDING_V2_S3_ENDPOINT
+                        value: https://s3.amazonaws.com
+                      - name: SITE_URL
+                        value: https://posthog-dev.limy.ai
+                      - name: SKIP_ASYNC_MIGRATIONS_SETUP
+                        value: '1'
+                      - name: TRUSTED_PROXIES
+                        value: 10.10.0.0/16
+                      - name: CDP_API_URL
+                        value: http://posthog-plugins:6738
+                      - name: OBJECT_STORAGE_ACCESS_KEY_ID
+                        valueFrom:
+                            secretKeyRef:
+                                key: OBJECT_STORAGE_ACCESS_KEY_ID
+                                name: posthog-secrets
+                      - name: OBJECT_STORAGE_SECRET_ACCESS_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                key: OBJECT_STORAGE_SECRET_ACCESS_KEY
+                                name: posthog-secrets
+                      - name: LOG_LEVEL
+                        value: error
+                      - name: DJANGO_LOG_LEVEL
+                        value: ERROR
+                      - name: RATE_LIMIT_ENABLED
+                        value: 'false'
+                      - name: DECIDE_RATE_LIMIT_ENABLED
+                        value: 'false'
+                      - name: API_QUERIES_ENABLED
+                        value: 'false'
+                      - name: QUOTA_LIMITING_ENABLED
+                        value: 'false'
+                      - name: OPT_OUT_CAPTURE
+                        value: 'true'
+                      - name: CLOUD_DEPLOYMENT
+                        value: LIMY
+                      - name: DISABLE_PAID_FEATURE_SHOWCASING
+                        value: 'true'
+                      - name: DECIDE_BILLING_SAMPLING_RATE
+                        value: '0'
+                      - name: POSTHOG_HOST_URL
+                        value: http://localhost
+                  image: 613957054253.dkr.ecr.us-east-1.amazonaws.com/posthog-foss:latest-x86
+                  imagePullPolicy: IfNotPresent
+                  livenessProbe:
+                      failureThreshold: 3
+                      httpGet:
+                          path: /_livez
+                          port: http
+                          scheme: HTTP
+                      initialDelaySeconds: 30
+                      periodSeconds: 10
+                      successThreshold: 1
+                      timeoutSeconds: 5
+                  name: posthog
+                  ports:
+                      - containerPort: 8000
+                        name: http
+                        protocol: TCP
+                      - containerPort: 8001
+                        name: http-alt
+                        protocol: TCP
+                      - containerPort: 80
+                        name: http-web
+                        protocol: TCP
+                  readinessProbe:
+                      failureThreshold: 3
+                      httpGet:
+                          path: /_readyz
+                          port: http
+                          scheme: HTTP
+                      initialDelaySeconds: 5
+                      periodSeconds: 5
+                      successThreshold: 1
+                      timeoutSeconds: 3
+                  resources:
+                      limits:
+                          memory: 25Gi
+                      requests:
+                          cpu: '4'
+                          memory: 25Gi
+                  securityContext: {}
+                  startupProbe:
+                      failureThreshold: 30
+                      httpGet:
+                          path: /_readyz
+                          port: http
+                          scheme: HTTP
+                      initialDelaySeconds: 10
+                      periodSeconds: 10
+                      successThreshold: 1
+                      timeoutSeconds: 5
+                  terminationMessagePath: /dev/termination-log
+                  terminationMessagePolicy: File
+                  volumeMounts:
+                      - mountPath: /var/lib/posthog
+                        name: posthog-data
+            dnsPolicy: ClusterFirst
+            restartPolicy: Always
+            schedulerName: default-scheduler
+            securityContext: {}
+            serviceAccount: posthog
+            serviceAccountName: posthog
+            terminationGracePeriodSeconds: 30
+            volumes:
+                - emptyDir: {}
+                  name: posthog-data

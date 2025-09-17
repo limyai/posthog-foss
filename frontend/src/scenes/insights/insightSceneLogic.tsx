@@ -33,7 +33,7 @@ import { insightDataLogicType } from './insightDataLogicType'
 import type { insightSceneLogicType } from './insightSceneLogicType'
 import { parseDraftQueryFromLocalStorage, parseDraftQueryFromURL } from './utils'
 
-const NEW_INSIGHT = 'new' as const
+const NEW_INSIGHT = 'new'
 export type InsightId = InsightShortId | typeof NEW_INSIGHT | null
 
 export function isDashboardFilterEmpty(filter: DashboardFilter | null): boolean {

@@ -67,7 +67,7 @@ export const productsLogic = kea<productsLogicType>([
             router.actions.push(urls.onboarding(values.firstProductOnboarding, stepKey))
             values.selectedProducts.forEach((productKey) => {
                 actions.addProductIntent({
-                    product_type: productKey as ProductKey,
+                    product_type: productKey,
                     intent_context:
                         values.firstProductOnboarding === productKey
                             ? ProductIntentContext.ONBOARDING_PRODUCT_SELECTED_PRIMARY

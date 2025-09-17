@@ -1,0 +1,45 @@
+#
+# PostHog build stage - fetches PostHog (Django app) dependencies & builds Django collectstatic
+#
+FROM python:3.11.9-slim-bookworm
+WORKDIR /code
+
+# Add in Django deps and generate Django's static files.
+COPY manage.py manage.py
+COPY common/esbuilder common/esbuilder
+COPY common/hogvm common/hogvm/
+COPY posthog posthog/
+COPY products/ products/
+COPY ee ee/
+
+RUN pip install django==4.2.17 structlog celery
+
+RUN SKIP_SERVICE_VERSION_REQUIREMENTS=1 STATIC_COLLECTION=1 DATABASE_URL='postgres:///' REDIS_URL='redis:///' python manage.py collectstatic --noinput
+
+# Fetch the GeoLite2-City database for IP geolocation
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    "ca-certificates" \
+    "curl" \
+    "brotli" \
+    && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir -p share && \
+    ( curl -s -L "https://mmdbcdn.posthog.net/" --http1.1 | brotli --decompress --output=./share/GeoLite2-City.mmdb ) && \
+    chmod -R 755 ./share/GeoLite2-City.mmdb
+
+# Copy the server startup script
+COPY bin/ bin/
+COPY gunicorn.config.py ./
+
+# Make scripts executable
+RUN chmod +x bin/docker-server bin/migrate-check bin/migrate
+
+# Disable Prometheus metrics to avoid multiprocess collisions
+ENV DISABLE_PROMETHEUS_METRICS=1
+
+# Expose the application port
+EXPOSE 8000
+
+# Run the server
+CMD ["./bin/migrate","./bin/docker-server"]

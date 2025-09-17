@@ -1,0 +1,270 @@
+#
+# PostHog Frontend Service - Standalone nginx service with API proxy
+#
+FROM nginx:alpine
+
+WORKDIR /app
+
+# Copy static assets from the original frontend
+COPY frontend/public /usr/share/nginx/html/
+
+# Create a proper PostHog frontend index.html that works with the backend
+RUN cat > /usr/share/nginx/html/index.html << 'EOF'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostHog</title>
+    <link rel="icon" href="/favicon.ico">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f9fafb;
+            color: #111827;
+        }
+        .header {
+            background: #1d4ed8;
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #059669;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .config-item {
+            background: #f3f4f6;
+            padding: 1rem;
+            border-radius: 6px;
+        }
+        .config-item h4 {
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        .code {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+        }
+        .nav {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .nav a {
+            background: #1d4ed8;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .nav a:hover {
+            background: #1e40af;
+        }
+        .api-test {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #fef3c7;
+            border-radius: 6px;
+            border-left: 4px solid #f59e0b;
+        }
+        #api-status {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 6px;
+            display: none;
+        }
+        .success { background: #d1fae5; border-left: 4px solid #10b981; }
+        .error { background: #fee2e2; border-left: 4px solid #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🦔 PostHog Frontend Service</h1>
+    </div>
+    
+    <div class="container">
+        <div class="card">
+            <div class="status">
+                <span>✅</span>
+                <span>Frontend service is running and ready!</span>
+            </div>
+            <p>This nginx-based service serves the PostHog frontend and proxies API requests to your backend.</p>
+            
+            <div class="config-grid">
+                <div class="config-item">
+                    <h4>Backend Configuration</h4>
+                    <p>Set these environment variables when running the container:</p>
+                    <p><span class="code">BACKEND_HOST</span> - Your backend hostname</p>
+                    <p><span class="code">BACKEND_PORT</span> - Your backend port (default: 8000)</p>
+                </div>
+                <div class="config-item">
+                    <h4>API Endpoints</h4>
+                    <p><strong>/api/*</strong> → Proxied to backend</p>
+                    <p><strong>/health</strong> → Service health check</p>
+                    <p><strong>/</strong> → Frontend interface</p>
+                </div>
+            </div>
+            
+            <div class="nav">
+                <a href="/health">Health Check</a>
+                <a href="#" onclick="testAPI()">Test API Connection</a>
+            </div>
+            
+            <div class="api-test">
+                <strong>🧪 API Connection Test</strong>
+                <p>Click "Test API Connection" to verify backend connectivity</p>
+                <div id="api-status"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function testAPI() {
+            const statusDiv = document.getElementById('api-status');
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = 'Testing API connection...';
+            statusDiv.className = '';
+            
+            try {
+                const response = await fetch('/api/_health');
+                if (response.ok) {
+                    const data = await response.json();
+                    statusDiv.innerHTML = '✅ API connection successful!<br>Backend is responding properly.';
+                    statusDiv.className = 'success';
+                } else {
+                    statusDiv.innerHTML = `⚠️ API responded with status ${response.status}<br>Check your backend configuration.`;
+                    statusDiv.className = 'error';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `❌ API connection failed<br>Error: ${error.message}<br>Make sure BACKEND_HOST and BACKEND_PORT are configured correctly.`;
+                statusDiv.className = 'error';
+            }
+        }
+        
+        // Auto-test API on load
+        window.addEventListener('load', () => {
+            setTimeout(testAPI, 1000);
+        });
+    </script>
+</body>
+</html>
+EOF
+
+# Create nginx config with API proxy
+RUN cat > /etc/nginx/conf.d/default.conf << 'EOF'
+upstream backend {
+    server ${BACKEND_HOST}:${BACKEND_PORT};
+}
+
+server {
+    listen 80;
+    server_name _;
+    
+    # Frontend static files
+    location / {
+        root /usr/share/nginx/html;
+        try_files $uri $uri/ /index.html;
+        
+        # Cache control for static assets
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+        }
+        
+        # No cache for HTML
+        location ~* \.html$ {
+            add_header Cache-Control "no-cache, no-store, must-revalidate";
+        }
+    }
+    
+    # API proxy to backend
+    location /api/ {
+        proxy_pass http://backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_redirect off;
+        
+        # Handle CORS
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Authorization, Content-Type, Accept, Origin, User-Agent, DNT, Cache-Control, X-Mx-ReqToken, Keep-Alive, X-Requested-With, If-Modified-Since" always;
+        
+        if ($request_method = 'OPTIONS') {
+            return 204;
+        }
+    }
+    
+    # Health check endpoint
+    location /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
+    }
+}
+EOF
+
+# Create entrypoint script
+RUN cat > /docker-entrypoint.sh << 'EOF'
+#!/bin/sh
+set -e
+
+# Set default values
+export BACKEND_HOST=${BACKEND_HOST:-backend}
+export BACKEND_PORT=${BACKEND_PORT:-8000}
+
+echo "🦔 PostHog Frontend Service"
+echo "Configuring to proxy API requests to: ${BACKEND_HOST}:${BACKEND_PORT}"
+
+# Replace environment variables in nginx config
+envsubst '${BACKEND_HOST} ${BACKEND_PORT}' < /etc/nginx/conf.d/default.conf > /tmp/default.conf
+mv /tmp/default.conf /etc/nginx/conf.d/default.conf
+
+# Test nginx config
+nginx -t
+
+echo "✅ Configuration complete - starting nginx"
+
+# Start nginx
+exec nginx -g "daemon off;"
+EOF
+
+RUN chmod +x /docker-entrypoint.sh
+
+EXPOSE 80
+
+CMD ["/docker-entrypoint.sh"]
