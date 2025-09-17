@@ -45,10 +45,7 @@
             "path": ".",
             "module": "posthog.$NGINX_UNIT_PYTHON_PROTOCOL",
             "protocol": "$NGINX_UNIT_PYTHON_PROTOCOL",
-            "user": "nobody",
-            "limits": {
-                "requests": 7500
-            }
+            "user": "nobody"
         },
         "metrics": {
             "type": "python 3.11",
