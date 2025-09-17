@@ -185,7 +185,6 @@ export async function fetch(url: string, options: FetchOptions = {}): Promise<Fe
         headers: options.headers,
         body: options.body,
         dispatcher: sharedSecureAgent,
-        maxRedirections: 0, // No redirects allowed by default
         signal: options.timeoutMs ? AbortSignal.timeout(options.timeoutMs) : undefined,
     })
 

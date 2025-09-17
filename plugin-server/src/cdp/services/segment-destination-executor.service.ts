@@ -64,6 +64,7 @@ const convertFetchResponse = <Data = unknown>(response: FetchResponse, text: str
         ...response,
         data: json,
         content: text,
+        bytes: () => Promise.resolve(new Uint8Array(Buffer.from(text))),
         ok: response.status >= 200 && response.status < 300,
         redirected: response.status === 301 || response.status === 302,
         statusText: 'Status: ' + response.status,
